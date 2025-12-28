@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>现代诗生成器 - 海子风格</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&display=swap"
+			rel="stylesheet"
+		/>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			:root {
+				--primary: hsl(200, 70%, 50%);
+				--primary-dark: hsl(200, 70%, 40%);
+				--secondary: hsl(280, 60%, 60%);
+				--bg-dark: hsl(220, 20%, 12%);
+				--bg-card: hsl(220, 18%, 16%);
+				--bg-input: hsl(220, 16%, 20%);
+				--text-primary: hsl(0, 0%, 95%);
+				--text-secondary: hsl(0, 0%, 70%);
+				--border: hsl(220, 15%, 25%);
+				--accent: hsl(45, 100%, 60%);
+				--success: hsl(140, 60%, 50%);
+			}
+
+			body {
+				font-family: "Noto Serif SC", serif;
+				background: linear-gradient(
+					135deg,
+					var(--bg-dark) 0%,
+					hsl(220, 25%, 18%) 100%
+				);
+				color: var(--text-primary);
+				min-height: 100vh;
+				padding: 20px;
+				position: relative;
+				overflow-x: hidden;
+			}
+
+			/* 背景装饰 */
+			body::before {
+				content: "";
+				position: fixed;
+				top: -50%;
+				right: -50%;
+				width: 100%;
+				height: 100%;
+				background: radial-gradient(
+					circle,
+					hsla(200, 70%, 50%, 0.1) 0%,
+					transparent 70%
+				);
+				animation: float 20s ease-in-out infinite;
+				pointer-events: none;
+			}
+
+			@keyframes float {
+				0%,
+				100% {
+					transform: translate(0, 0) rotate(0deg);
+				}
+				50% {
+					transform: translate(-100px, 100px) rotate(180deg);
+				}
+			}
+
+			.container {
+				max-width: 1200px;
+				margin: 0 auto;
+				position: relative;
+				z-index: 1;
+			}
+
+			/* 标题区 */
+			.header {
+				text-align: center;
+				margin-bottom: 40px;
+				padding: 30px 20px;
+				background: linear-gradient(
+					135deg,
+					var(--bg-card) 0%,
+					hsla(220, 18%, 20%, 0.8) 100%
+				);
+				border-radius: 20px;
+				border: 1px solid var(--border);
+				backdrop-filter: blur(10px);
+				box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+			}
+
+			h1 {
+				font-family: "Ma Shan Zheng", cursive;
+				font-size: 3.5rem;
+				background: linear-gradient(
+					135deg,
+					var(--primary) 0%,
+					var(--secondary) 100%
+				);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+				margin-bottom: 10px;
+				text-shadow: 0 0 30px rgba(100, 200, 255, 0.3);
+				animation: glow 3s ease-in-out infinite;
+			}
+
+			@keyframes glow {
+				0%,
+				100% {
+					filter: brightness(1);
+				}
+				50% {
+					filter: brightness(1.2);
+				}
+			}
+
+			.subtitle {
+				color: var(--text-secondary);
+				font-size: 1.1rem;
+				letter-spacing: 2px;
+			}
+
+			/* 主内容区 */
+			.main-content {
+				display: grid;
+				grid-template-columns: 350px 1fr;
+				gap: 30px;
+				align-items: start;
+			}
+
+			/* 控制面板 */
+			.control-panel {
+				background: var(--bg-card);
+				padding: 30px;
+				border-radius: 16px;
+				border: 1px solid var(--border);
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+				position: sticky;
+				top: 20px;
+			}
+
+			.control-section {
+				margin-bottom: 25px;
+			}
+
+			.control-section:last-child {
+				margin-bottom: 0;
+			}
+
+			.control-label {
+				display: block;
+				margin-bottom: 10px;
+				font-weight: 600;
+				color: var(--text-primary);
+				font-size: 0.95rem;
+				letter-spacing: 0.5px;
+			}
+
+			select,
+			input[type="number"] {
+				width: 100%;
+				padding: 12px 16px;
+				background: var(--bg-input);
+				border: 1px solid var(--border);
+				border-radius: 10px;
+				color: var(--text-primary);
+				font-size: 1rem;
+				font-family: inherit;
+				transition: all 0.3s ease;
+				cursor: pointer;
+			}
+
+			select:hover,
+			input[type="number"]:hover {
+				border-color: var(--primary);
+			}
+
+			select:focus,
+			input[type="number"]:focus {
+				outline: none;
+				border-color: var(--primary);
+				box-shadow: 0 0 0 3px hsla(200, 70%, 50%, 0.2);
+			}
+
+			/* 按钮 */
+			.btn {
+				width: 100%;
+				padding: 14px 24px;
+				border: none;
+				border-radius: 12px;
+				font-size: 1.1rem;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				font-family: inherit;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.btn::before {
+				content: "";
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 0;
+				height: 0;
+				border-radius: 50%;
+				background: rgba(255, 255, 255, 0.2);
+				transform: translate(-50%, -50%);
+				transition: width 0.6s, height 0.6s;
+			}
+
+			.btn:hover::before {
+				width: 300px;
+				height: 300px;
+			}
+
+			.btn-primary {
+				background: linear-gradient(
+					135deg,
+					var(--primary) 0%,
+					var(--secondary) 100%
+				);
+				color: white;
+				box-shadow: 0 4px 15px hsla(200, 70%, 50%, 0.4);
+			}
+
+			.btn-primary:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 6px 20px hsla(200, 70%, 50%, 0.6);
+			}
+
+			.btn-primary:active {
+				transform: translateY(0);
+			}
+
+			.btn-secondary {
+				background: var(--bg-input);
+				color: var(--text-primary);
+				border: 1px solid var(--border);
+				margin-top: 10px;
+			}
+
+			.btn-secondary:hover {
+				background: var(--border);
+			}
+
+			/* 输出区 */
+			.output-area {
+				background: var(--bg-card);
+				padding: 40px;
+				border-radius: 16px;
+				border: 1px solid var(--border);
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+				min-height: 500px;
+			}
+
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 30px;
+				padding-bottom: 20px;
+				border-bottom: 2px solid var(--border);
+			}
+
+			.output-title {
+				font-size: 1.5rem;
+				font-weight: 600;
+				color: var(--text-primary);
+			}
+
+			.output-actions {
+				display: flex;
+				gap: 10px;
+			}
+
+			.icon-btn {
+				padding: 8px 16px;
+				background: var(--bg-input);
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				color: var(--text-secondary);
+				cursor: pointer;
+				transition: all 0.3s ease;
+				font-size: 0.9rem;
+			}
+
+			.icon-btn:hover {
+				background: var(--border);
+				color: var(--text-primary);
+			}
+
+			.poem-container {
+				min-height: 300px;
+				position: relative;
+			}
+
+			.poem-item {
+				background: linear-gradient(
+					135deg,
+					hsla(220, 18%, 20%, 0.5) 0%,
+					hsla(220, 18%, 18%, 0.5) 100%
+				);
+				padding: 30px;
+				border-radius: 12px;
+				border-left: 4px solid var(--primary);
+				margin-bottom: 20px;
+				animation: fadeIn 0.5s ease;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			.poem-meta {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 15px;
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+			}
+
+			.poem-mode {
+				background: var(--primary);
+				color: white;
+				padding: 4px 12px;
+				border-radius: 20px;
+				font-weight: 600;
+			}
+
+			.poem-text {
+				font-family: "Ma Shan Zheng", cursive;
+				font-size: 1.8rem;
+				line-height: 2.2;
+				color: var(--text-primary);
+				white-space: pre-wrap;
+				letter-spacing: 2px;
+			}
+
+			.empty-state {
+				text-align: center;
+				padding: 80px 20px;
+				color: var(--text-secondary);
+			}
+
+			.empty-state-icon {
+				font-size: 4rem;
+				margin-bottom: 20px;
+				opacity: 0.5;
+			}
+
+			.empty-state-text {
+				font-size: 1.2rem;
+			}
+
+			/* 统计信息 */
+			.stats {
+				background: linear-gradient(
+					135deg,
+					hsla(200, 70%, 50%, 0.1) 0%,
+					hsla(280, 60%, 60%, 0.1) 100%
+				);
+				padding: 15px;
+				border-radius: 10px;
+				margin-top: 20px;
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				line-height: 1.8;
+			}
+
+			.stats-item {
+				display: flex;
+				justify-content: space-between;
+				margin-bottom: 5px;
+			}
+
+			.stats-value {
+				color: var(--primary);
+				font-weight: 600;
+			}
+
+			/* 加载动画 */
+			.loading {
+				display: none;
+				text-align: center;
+				padding: 40px;
+			}
+
+			.loading.active {
+				display: block;
+			}
+
+			.spinner {
+				width: 50px;
+				height: 50px;
+				margin: 0 auto 20px;
+				border: 4px solid var(--border);
+				border-top-color: var(--primary);
+				border-radius: 50%;
+				animation: spin 1s linear infinite;
+			}
+
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+
+			/* 响应式 */
+			@media (max-width: 968px) {
+				.main-content {
+					grid-template-columns: 1fr;
+				}
+
+				.control-panel {
+					position: static;
+				}
+
+				h1 {
+					font-size: 2.5rem;
+				}
+			}
+
+			/* 提示消息 */
+			.toast {
+				position: fixed;
+				bottom: 30px;
+				right: 30px;
+				background: var(--success);
+				color: white;
+				padding: 16px 24px;
+				border-radius: 10px;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+				transform: translateY(100px);
+				opacity: 0;
+				transition: all 0.3s ease;
+				z-index: 1000;
+			}
+
+			.toast.show {
+				transform: translateY(0);
+				opacity: 1;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<!-- 标题 -->
+			<div class="header">
+				<h1>现代诗生成器</h1>
+				<p class="subtitle">基于马尔可夫链 · 海子风格</p>
+			</div>
+
+			<!-- 主内容 -->
+			<div class="main-content">
+				<!-- 控制面板 -->
+				<div class="control-panel">
+					<div class="control-section">
+						<label class="control-label">语料库风格</label>
+						<select id="corpusSelect">
+							<option value="haizi_full.txt">海子诗集（完整版）</option>
+							<option value="haizi.txt">海子诗集（精选）</option>
+						</select>
+					</div>
+
+					<div class="control-section">
+						<label class="control-label">生成模式</label>
+						<select id="modeSelect">
+							<option value="structured">结构化（推荐）</option>
+							<option value="imagery">意象链</option>
+							<option value="markov">马尔可夫链</option>
+						</select>
+					</div>
+
+					<div class="control-section">
+						<label class="control-label">诗歌行数</label>
+						<input type="number" id="numLines" min="1" max="20" value="4" />
+					</div>
+
+					<div class="control-section" id="orderSection">
+						<label class="control-label">马尔可夫阶数</label>
+						<select id="orderSelect">
+							<option value="1">1阶（最随机）</option>
+							<option value="2" selected>2阶（平衡）</option>
+							<option value="3">3阶（最连贯）</option>
+						</select>
+					</div>
+
+					<button class="btn btn-primary" id="generateBtn">
+						<span>🎲 生成诗歌</span>
+					</button>
+
+					<button class="btn btn-secondary" id="clearBtn">🗑️ 清空历史</button>
+
+					<!-- 统计信息 -->
+					<div class="stats" id="statsPanel">
+						<div class="stats-item">
+							<span>当前语料库:</span>
+							<span class="stats-value" id="currentCorpus">-</span>
+						</div>
+						<div class="stats-item">
+							<span>意象词数量:</span>
+							<span class="stats-value" id="imageryCount">-</span>
+						</div>
+						<div class="stats-item">
+							<span>结尾句数量:</span>
+							<span class="stats-value" id="endingCount">-</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- 输出区 -->
+				<div class="output-area">
+					<div class="output-header">
+						<h2 class="output-title">生成结果</h2>
+						<div class="output-actions">
+							<button class="icon-btn" id="copyBtn">📋 复制</button>
+							<button class="icon-btn" id="saveBtn">💾 保存</button>
+						</div>
+					</div>
+
+					<div class="poem-container" id="poemContainer">
+						<div class="empty-state">
+							<div class="empty-state-icon">📜</div>
+							<p class="empty-state-text">点击"生成诗歌"开始创作</p>
+						</div>
+					</div>
+
+					<div class="loading" id="loading">
+						<div class="spinner"></div>
+						<p>正在生成诗歌...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 提示消息 -->
+		<div class="toast" id="toast"></div>
+
+		<script>
+			// 全局变量
+			let currentPoem = "";
+			let poemHistory = [];
+
+			// DOM 元素
+			const corpusSelect = document.getElementById("corpusSelect");
+			const modeSelect = document.getElementById("modeSelect");
+			const numLinesInput = document.getElementById("numLines");
+			const orderSelect = document.getElementById("orderSelect");
+			const generateBtn = document.getElementById("generateBtn");
+			const clearBtn = document.getElementById("clearBtn");
+			const copyBtn = document.getElementById("copyBtn");
+			const saveBtn = document.getElementById("saveBtn");
+			const poemContainer = document.getElementById("poemContainer");
+			const loading = document.getElementById("loading");
+			const toast = document.getElementById("toast");
+
+			// 初始化
+			async function init() {
+				await loadCorpusList();
+				await loadStats();
+			}
+
+			// 加载语料库列表
+			async function loadCorpusList() {
+				try {
+					const response = await fetch("/api/corpus/list");
+					const data = await response.json();
+
+					if (data.success) {
+						corpusSelect.innerHTML = "";
+						data.corpus_list.forEach((corpus) => {
+							const option = document.createElement("option");
+							option.value = corpus;
+							option.textContent = corpus.replace(".txt", "");
+							if (corpus === data.current) {
+								option.selected = true;
+							}
+							corpusSelect.appendChild(option);
+						});
+					}
+				} catch (error) {
+					console.error("加载语料库列表失败:", error);
+				}
+			}
+
+			// 加载统计信息
+			async function loadStats() {
+				try {
+					const response = await fetch("/api/stats");
+					const data = await response.json();
+
+					if (data.success) {
+						document.getElementById("currentCorpus").textContent =
+							data.stats.current_corpus;
+						document.getElementById("imageryCount").textContent =
+							data.stats.意象词数量 || "-";
+						document.getElementById("endingCount").textContent =
+							data.stats.结尾句数量 || "-";
+					}
+				} catch (error) {
+					console.error("加载统计信息失败:", error);
+				}
+			}
+
+			// 生成诗歌
+			async function generatePoem() {
+				const mode = modeSelect.value;
+				const numLines = parseInt(numLinesInput.value);
+
+				if (numLines < 1 || numLines > 20) {
+					showToast("请输入 1-20 之间的行数", "error");
+					return;
+				}
+
+				// 显示加载动画
+				loading.classList.add("active");
+				generateBtn.disabled = true;
+
+				try {
+					const response = await fetch("/api/generate", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							mode: mode,
+							num_lines: numLines,
+						}),
+					});
+
+					const data = await response.json();
+
+					if (data.success) {
+						currentPoem = data.poem;
+						addPoemToDisplay(data.poem, data.mode_label, data.timestamp);
+						showToast("诗歌生成成功！");
+					} else {
+						showToast("生成失败: " + data.error, "error");
+					}
+				} catch (error) {
+					showToast("网络错误: " + error.message, "error");
+				} finally {
+					loading.classList.remove("active");
+					generateBtn.disabled = false;
+				}
+			}
+
+			// 添加诗歌到显示区
+			function addPoemToDisplay(poem, modeLabel, timestamp) {
+				// 清空空状态
+				if (poemContainer.querySelector(".empty-state")) {
+					poemContainer.innerHTML = "";
+				}
+
+				const poemItem = document.createElement("div");
+				poemItem.className = "poem-item";
+				poemItem.innerHTML = `
+                <div class="poem-meta">
+                    <span class="poem-mode">${modeLabel}</span>
+                    <span>${timestamp}</span>
+                </div>
+                <div class="poem-text">${poem}</div>
+            `;
+
+				poemContainer.insertBefore(poemItem, poemContainer.firstChild);
+				poemHistory.push({ poem, modeLabel, timestamp });
+			}
+
+			// 复制诗歌
+			function copyPoem() {
+				if (!currentPoem) {
+					showToast("还没有生成诗歌", "error");
+					return;
+				}
+
+				navigator.clipboard
+					.writeText(currentPoem)
+					.then(() => {
+						showToast("已复制到剪贴板！");
+					})
+					.catch((err) => {
+						showToast("复制失败", "error");
+					});
+			}
+
+			// 保存诗歌
+			async function savePoem() {
+				if (!currentPoem) {
+					showToast("还没有生成诗歌", "error");
+					return;
+				}
+
+				try {
+					const response = await fetch("/api/save", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							poem: currentPoem,
+						}),
+					});
+
+					const data = await response.json();
+
+					if (data.success) {
+						showToast("已保存到: " + data.filename);
+					} else {
+						showToast("保存失败: " + data.error, "error");
+					}
+				} catch (error) {
+					showToast("保存失败: " + error.message, "error");
+				}
+			}
+
+			// 清空历史
+			function clearHistory() {
+				poemContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📜</div>
+                    <p class="empty-state-text">点击"生成诗歌"开始创作</p>
+                </div>
+            `;
+				poemHistory = [];
+				currentPoem = "";
+				showToast("已清空历史");
+			}
+
+			// 显示提示消息
+			function showToast(message, type = "success") {
+				toast.textContent = message;
+				toast.style.background =
+					type === "error" ? "hsl(0, 70%, 50%)" : "hsl(140, 60%, 50%)";
+				toast.classList.add("show");
+
+				setTimeout(() => {
+					toast.classList.remove("show");
+				}, 3000);
+			}
+
+			// 切换语料库
+			corpusSelect.addEventListener("change", async () => {
+				const corpus = corpusSelect.value;
+				const order = parseInt(orderSelect.value);
+
+				showToast("正在加载语料库...");
+
+				try {
+					const response = await fetch("/api/corpus/load", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							corpus: corpus,
+							order: order,
+						}),
+					});
+
+					const data = await response.json();
+
+					if (data.success) {
+						showToast("语料库加载成功！");
+						await loadStats();
+					} else {
+						showToast("加载失败: " + data.error, "error");
+					}
+				} catch (error) {
+					showToast("加载失败: " + error.message, "error");
+				}
+			});
+
+			// 切换阶数
+			orderSelect.addEventListener("change", async () => {
+				const corpus = corpusSelect.value;
+				const order = parseInt(orderSelect.value);
+
+				showToast("正在重新训练模型...");
+
+				try {
+					const response = await fetch("/api/corpus/load", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							corpus: corpus,
+							order: order,
+						}),
+					});
+
+					const data = await response.json();
+
+					if (data.success) {
+						showToast("模型已更新！");
+					} else {
+						showToast("更新失败: " + data.error, "error");
+					}
+				} catch (error) {
+					showToast("更新失败: " + error.message, "error");
+				}
+			});
+
+			// 事件监听
+			generateBtn.addEventListener("click", generatePoem);
+			copyBtn.addEventListener("click", copyPoem);
+			saveBtn.addEventListener("click", savePoem);
+			clearBtn.addEventListener("click", clearHistory);
+
+			// 回车生成
+			numLinesInput.addEventListener("keypress", (e) => {
+				if (e.key === "Enter") {
+					generatePoem();
+				}
+			});
+
+			// 初始化应用
+			init();
+		</script>
+	</body>
+</html>
